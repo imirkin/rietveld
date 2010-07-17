@@ -265,7 +265,7 @@ function M_showInlineDiff(suffix, url) {
   var hideAll = document.getElementById("hide-alldiffs");
   var showAll = document.getElementById("show-alldiffs");
 
-  /* Twiddle the "show/hide all diffs" link */
+  /* Twiddle the "show/hide all diffs" link
   if (hide.style.display != "") {
     M_CL_hiddenInlineDiffCount -= 1;
     if (M_CL_hiddenInlineDiffCount == M_CL_maxHiddenInlineDiffCount) {
@@ -276,6 +276,7 @@ function M_showInlineDiff(suffix, url) {
       hideAll.style.display = "inline";
     }
   }
+  */
 
   hide.style.display = "";
   show.style.display = "none";
@@ -304,7 +305,7 @@ function M_hideInlineDiff(suffix) {
   var hideAll = document.getElementById("hide-alldiffs");
   var showAll = document.getElementById("show-alldiffs");
 
-  /* Twiddle the "show/hide all diffs" link */
+  /* Twiddle the "show/hide all diffs" link
   if (hide.style.display != "none") {
     M_CL_hiddenInlineDiffCount += 1;
     if (M_CL_hiddenInlineDiffCount == M_CL_maxHiddenInlineDiffCount) {
@@ -315,6 +316,7 @@ function M_hideInlineDiff(suffix) {
       hideAll.style.display = "inline";
     }
   }
+  */
 
   hide.style.display = "none";
   show.style.display = "inline";
@@ -2140,7 +2142,7 @@ function M_changelistKeyPress(evt) {
       if (dashboardState) {
 	var child = dashboardState.curTR.cells[2].firstChild;
 	while (child && child.nextSibling &&
-	       (child.nodeName != "A" || child.style.display == "none")) {
+	       (child.nodeName != "A" || child.style.display == "none" || child.href.indexOf("javascript") != 0)) {
 	  child = child.nextSibling;
 	}
 	if (child && child.nodeName == "A") {

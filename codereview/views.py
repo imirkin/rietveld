@@ -1814,9 +1814,23 @@ def image(request):
   return HttpResponse(request.content.data)
 
 
+def _unified_format_html(text):
+  lines = text.splitlines()
+  for line in lines:
+    if line.startswith("-"):
+      extra = "; color:red"
+    elif line.startswith("+"):
+      extra = "; color:blue"
+    else:
+      extra = ""
+    yield '<div style="white-space:pre; font-family:monospace%s">%s</div>' % (
+      extra, line)
+
 @patch_required
 def download_patch(request):
   """/download/issue<issue>_<patchset>_<patch>.diff - Download patch."""
+  if request.GET.get('html'):
+    return HttpResponse("".join(_unified_format_html(request.patch.text)))
   return HttpResponse(request.patch.text, content_type='text/plain')
 
 

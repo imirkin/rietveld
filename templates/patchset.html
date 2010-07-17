@@ -52,6 +52,8 @@
              href="{%url codereview.views.patch issue.key.id,patchset.key.id,patch.key.id%}">
             {{patch.filename}}
           </a>
+	  <a style="text-decoration:none" id="show-{{patch.key.id}}" href="javascript:M_showInlineDiff('{{patch.key.id}}', '{%url codereview.views.download_patch issue.key.id,patchset.key.id,patch.key.id%}?html=1');">(show)</a>
+	  <a style="text-decoration:none;display:none" id="hide-{{patch.key.id}}" href="javascript:M_hideInlineDiff('{{patch.key.id}}');">(hide)</a>
         </td>
         <td>
           <a class="noul"
@@ -83,6 +85,12 @@
             Download
           </a>
         </td>
+      </tr>
+      <tr style="display:none" id="diffTR-{{patch.key.id}}">
+	<td colspan="9">
+	  <div id="frameDiv-{{patch.key.id}}"></div>
+	  <div id="dumpDiv-{{patch.key.id}}"></div>
+	</td>
       </tr>
     {%endfor%}
 
