@@ -1868,6 +1868,13 @@ def diff(request):
   patchset = request.patchset
   patch = request.patch
 
+  patchsets = list(request.issue.patchset_set.order('created'))
+  patches = list(models.Patch.gql("WHERE filename = :fn "
+                                  "AND ANCESTOR IS :issue "
+                                  "ORDER BY patchset",
+                                  fn=patch.filename,
+                                  issue=request.issue))
+
   context = _get_context_for_user(request)
   column_width = _get_column_width_for_user(request)
   if patch.is_binary:
@@ -1888,6 +1895,9 @@ def diff(request):
                   'context': context,
                   'context_values': models.CONTEXT_CHOICES,
                   'column_width': column_width,
+
+                  'patches': patches,
+                  'patchsets': patchsets,
                   })
 
 
@@ -2045,6 +2055,14 @@ def diff2(request, ps_left_id, ps_right_id, patch_id):
   if isinstance(data, HttpResponseNotFound):
     return data
 
+  patch = data["patch_left"]
+  patchsets = list(request.issue.patchset_set.order('created'))
+  patches = list(models.Patch.gql("WHERE filename = :fn "
+                                  "AND ANCESTOR IS :issue "
+                                  "ORDER BY patchset",
+                                  fn=patch.filename,
+                                  issue=request.issue))
+
   _add_next_prev(data["ps_right"], data["patch_right"])
   return respond(request, 'diff2.html',
                  {'issue': request.issue,
@@ -2057,6 +2075,9 @@ def diff2(request, ps_left_id, ps_right_id, patch_id):
                   'context': context,
                   'context_values': models.CONTEXT_CHOICES,
                   'column_width': column_width,
+
+                  'patches': patches,
+                  'patchsets': patchsets,
                   })
 
 
