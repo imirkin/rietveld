@@ -723,6 +723,21 @@ def patch_required(func):
 
   return patch_wrapper
 
+def patch_filename_required(func):
+  """Decorator that processes the patch_id argument."""
+
+  @patchset_required
+  def patch_wrapper(request, patch_filename, *args, **kwds):
+    patch = models.Patch.gql('WHERE patchset = :1 AND filename = :2',
+                             request.patchset, patch_filename).get()
+    if patch is None:
+      return HttpResponseNotFound('No patch exists with that id (%s/%s)' %
+                                  (request.patchset.key().id(), patch_filename))
+    patch.patchset = request.patchset
+    request.patch = patch
+    return func(request, *args, **kwds)
+
+  return patch_wrapper
 
 def image_required(func):
   """Decorator that processes the image argument.
@@ -1857,7 +1872,7 @@ def _get_column_width_for_user(request):
   return column_width
 
 
-@patch_required
+@patch_filename_required
 def diff(request):
   """/<issue>/diff/<patchset>/<patch> - View a patch as a side-by-side diff"""
   if request.patch.no_base_file:
@@ -1869,11 +1884,6 @@ def diff(request):
   patch = request.patch
 
   patchsets = list(request.issue.patchset_set.order('created'))
-  patches = list(models.Patch.gql("WHERE filename = :fn "
-                                  "AND ANCESTOR IS :issue "
-                                  "ORDER BY patchset",
-                                  fn=patch.filename,
-                                  issue=request.issue))
 
   context = _get_context_for_user(request)
   column_width = _get_column_width_for_user(request)
@@ -1896,7 +1906,6 @@ def diff(request):
                   'context_values': models.CONTEXT_CHOICES,
                   'column_width': column_width,
 
-                  'patches': patches,
                   'patchsets': patchsets,
                   })
 
@@ -2046,22 +2055,21 @@ def _get_diff2_data(request, ps_left_id, ps_right_id, patch_id, context,
 
 
 @issue_required
-def diff2(request, ps_left_id, ps_right_id, patch_id):
+def diff2(request, ps_left_id, ps_right_id, patch_filename):
   """/<issue>/diff2/... - View the delta between two different patch sets."""
   context = _get_context_for_user(request)
   column_width = _get_column_width_for_user(request)
-  data = _get_diff2_data(request, ps_left_id, ps_right_id, patch_id, context,
-                         column_width)
+
+  patch_right = models.Patch.gql('WHERE patchset = :1 AND filename = :2',
+                                 ps_right_id, patch_filename).get()
+
+  data = _get_diff2_data(request, ps_left_id, ps_right_id,
+                         patch_right.key().id(),
+                         context, column_width)
   if isinstance(data, HttpResponseNotFound):
     return data
 
-  patch = data["patch_left"]
   patchsets = list(request.issue.patchset_set.order('created'))
-  patches = list(models.Patch.gql("WHERE filename = :fn "
-                                  "AND ANCESTOR IS :issue "
-                                  "ORDER BY patchset",
-                                  fn=patch.filename,
-                                  issue=request.issue))
 
   _add_next_prev(data["ps_right"], data["patch_right"])
   return respond(request, 'diff2.html',
@@ -2071,12 +2079,11 @@ def diff2(request, ps_left_id, ps_right_id, patch_id):
                   'ps_right': data["ps_right"],
                   'patch_right': data["patch_right"],
                   'rows': data["rows"],
-                  'patch_id': patch_id,
+                  'patch_id': patch_right.key().id(),
                   'context': context,
                   'context_values': models.CONTEXT_CHOICES,
                   'column_width': column_width,
 
-                  'patches': patches,
                   'patchsets': patchsets,
                   })
 
@@ -2446,7 +2453,7 @@ def _get_draft_details(request, comments):
       url = request.build_absolute_uri(
         reverse(diff, args=[request.issue.key().id(),
                             c.patch.patchset.key().id(),
-                            c.patch.key().id()]))
+                            c.patch.filename]))
       output.append('\n%s\nFile %s (%s):' % (url, c.patch.filename,
                                              c.left and "left" or "right"))
       last_key = (c.patch.filename, c.left)
@@ -2474,7 +2481,7 @@ def _get_draft_details(request, comments):
     url = request.build_absolute_uri(
       '%s#%scode%d' % (reverse(diff, args=[request.issue.key().id(),
                                            c.patch.patchset.key().id(),
-                                           c.patch.key().id()]),
+                                           c.patch.filename]),
                        c.left and "old" or "new",
                        c.lineno))
     output.append('\n%s\n%s:%d: %s\n%s' % (url, c.patch.filename, c.lineno,
