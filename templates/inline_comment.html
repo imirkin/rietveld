@@ -15,7 +15,7 @@
      {%if not c.draft%}style="display: none"{%endif%}>
 {%for bucket in c.buckets%}
 {%if bucket.quoted%}
-<div><a class="comment-hide-link" href="javascript:M_switchQuotedText({{forloop.parentloop.counter0}}, {{forloop.counter0}}, {{lineno}}, '{{side}}')">(Un)hide quoted text</a></div>
+<div name="comment-hide-{{forloop.parentloop.counter0}}-{{lineno}}-{{side}}"><a class="comment-hide-link" href="javascript:M_switchQuotedText({{forloop.parentloop.counter0}}, {{forloop.counter0}}, {{lineno}}, '{{side}}')">(Un)hide quoted text</a></div>
 {%endif%}
 <div name="comment-text-{{forloop.parentloop.counter0}}-{{lineno}}-{{side}}"
 id="comment-text-{{forloop.parentloop.counter0}}-{{lineno}}-{{side}}-{{forloop.counter0}}"

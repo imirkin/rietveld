@@ -968,11 +968,18 @@ function M_editInlineCommentCommon_(cid, lineno, side) {
     return false;
   }
   M_createResizer_(form, suffix);
+
   var texts = document.getElementsByName("comment-text-" + suffix);
   var textsLength = texts.length;
   for (var i = 0; i < textsLength; i++) {
     texts[i].style.display = "none";
   }
+  var hides = document.getElementsByName("comment-hide-" + suffix);
+  var hidesLength = hides.length;
+  for (var i = 0; i < hidesLength; i++) {
+    hides[i].style.display = "none";
+  }
+
   M_hideElement("edit-link-" + suffix);
   M_hideElement("undo-link-" + suffix);
   form.style.display = "";
@@ -1332,7 +1339,14 @@ function M_resetAndHideInlineComment(form, cid, lineno, side) {
   var texts = document.getElementsByName("comment-text-" + suffix);
   var textsLength = texts.length;
   for (var i = 0; i < textsLength; i++) {
-    texts[i].style.display = "";
+    if (texts[i].className.indexOf("comment-text-quoted") < 0) {
+      texts[i].style.display = "";
+    }
+  }
+  var hides = document.getElementsByName("comment-hide-" + suffix);
+  var hidesLength = hides.length;
+  for (var i = 0; i < hidesLength; i++) {
+    hides[i].style.display = "";
   }
   M_showElement("edit-link-" + suffix);
   hookState.gotoHook(0);
