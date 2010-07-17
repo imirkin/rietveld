@@ -28,6 +28,7 @@ import md5
 import os
 import random
 import re
+import smtplib
 import urllib
 from cStringIO import StringIO
 from xml.etree import ElementTree
@@ -2524,12 +2525,20 @@ def _make_message(request, issue, message, comments=None, send_mail=False,
     kwds = {}
     if cc:
       kwds['cc'] = [_encode_safely(address) for address in cc]
-    mail.send_mail(sender=my_email,
-                   to=[_encode_safely(address) for address in to],
-                   subject=_encode_safely(subject),
-                   body=_encode_safely(body),
-                   reply_to=_encode_safely(reply_to),
-                   **kwds)
+
+    obj = email.message.Message()
+    obj["Sender"] = "computertechnology@yext.com"
+    obj["From"] = my_email
+    obj["To"] = ", ".join(to)
+    obj["Subject"] = subject
+    obj["Reply-To"] = reply_to
+    if cc:
+      obj["CC"] = ", ".join(cc)
+    obj.set_payload(body)
+
+    smtp = smtplib.SMTP('localhost')
+    smtp.sendmail(my_email, to + cc + [my_email], obj.as_string())
+    smtp.quit()
 
   return msg
 
