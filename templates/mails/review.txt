@@ -3,7 +3,7 @@
 {%if message%}Message:
 {{message|wordwrap:"72"}}
 
-{%endif%}{%if details%}{{details|wordwrap:"72"}}
+{%endif%}{%if details%}{{details}}
 
 {%endif%}{%if description%}Description:
 {{description|wordwrap:"72"}}{%endif%}
