@@ -20,6 +20,7 @@
 
 # Python imports
 import binascii
+import cgi
 import datetime
 import email  # see incoming_mail()
 import email.utils
@@ -1824,13 +1825,13 @@ def _unified_format_html(text):
     else:
       extra = ""
     yield '<div style="white-space:pre; font-family:monospace%s">%s</div>' % (
-      extra, line)
+      extra, cgi.escape(line))
 
 @patch_required
 def download_patch(request):
   """/download/issue<issue>_<patchset>_<patch>.diff - Download patch."""
   if request.GET.get('html'):
-    return HttpResponse("".join(_unified_format_html(request.patch.text)))
+    return HttpResponse("\n".join(_unified_format_html(request.patch.text)))
   return HttpResponse(request.patch.text, content_type='text/plain')
 
 
