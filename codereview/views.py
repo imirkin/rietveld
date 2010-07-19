@@ -2466,6 +2466,11 @@ def _get_draft_details(request, comments):
   modified_patches = []
   for c in comments:
     if (c.patch.filename, c.left) != last_key:
+      url = request.build_absolute_uri(reverse(
+          diff, args=[request.issue.key().id(),
+                      c.patch.patchset.key().id(),
+                      c.patch.filename]))
+      output.append("\nFile: %s (%s)" % (url, c.left and "left" or "right"))
       last_key = (c.patch.filename, c.left)
       patch = c.patch
       if patch.no_base_file:
@@ -2488,14 +2493,8 @@ def _get_draft_details(request, comments):
     else:
       if 1 <= c.lineno <= len(file_lines):
         context = file_lines[c.lineno - 1].strip()
-    url = request.build_absolute_uri(
-      '%s#%scode%d' % (reverse(diff, args=[request.issue.key().id(),
-                                           c.patch.patchset.key().id(),
-                                           c.patch.filename]),
-                       c.left and "old" or "new",
-                       c.lineno))
-    output.append('\n%s\nL%d: %s\n%s' % (
-        url, c.lineno, context,
+    output.append('\nLine %d: %s\n%s' % (
+        c.lineno, context,
         textwrap.fill(c.text.rstrip(), replace_whitespace=False)))
   if modified_patches:
     db.put(modified_patches)
