@@ -91,6 +91,9 @@ function M_stopBubble(win, e) {
   if (e.stopPropagation) {
     e.stopPropagation();
   }
+  if (e.preventDefault) {
+    e.preventDefault();
+  }
 }
 
 /**
@@ -2036,7 +2039,7 @@ function M_keyPressCommon(evt, handler, input_handler) {
 function M_commentTextKeyPress_(evt, src, code, key) {
   if (src.nodeName == "TEXTAREA") {
     if (evt.ctrlKey || evt.ctrlLeft) {
-      if (key == 's' || code == 19 /* ASCII code for ^S */) {
+      if (key == 's' || key == 'S' || code == 19 /* ASCII code for ^S */) {
         // Save the form corresponding to this text area.
         M_disableCarefulUnload();
         if (src.form.save.onclick) {
@@ -2052,7 +2055,7 @@ function M_commentTextKeyPress_(evt, src, code, key) {
     } else {
       if (code == (window.event ? 27 /* ASCII code for Escape */
                                 : evt.DOM_VK_ESCAPE)) {
-	if (draftMessage) {
+	if (draftMessage && draftMessage.dialog_visible()) {
 	  return draftMessage.dialog_hide(true);
 	} else {
 	  return src.form.cancel.onclick();
@@ -2923,6 +2926,10 @@ M_draftMessage.prototype.dialog_hide = function(save) {
   }
   dlg = this.get_dialog_();
   dlg.style.display = "none";
+}
+
+M_draftMessage.prototype.dialog_visible = function() {
+  return this.get_dialog_().style.display == "";
 }
 
 /**

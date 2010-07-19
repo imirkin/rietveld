@@ -6,6 +6,17 @@ function keyPressIntermediary(evt) {
   return M_keyPress(evt);
 }
 document.onkeypress = keyPressIntermediary;
+
+function keyPressIntermediaryOnKeyDown(evt) {
+  if (!M_keyPressCommon(evt, function() { return true; }, M_commentTextKeyPress_)) {
+    M_stopBubble(window, evt);
+  }
+}
+
+if (M_isKHTML()) {
+  document.documentElement.addEventListener('keydown', keyPressIntermediaryOnKeyDown, true);
+}
+
 {%if user%}
 logged_in = true;
 {%else%}
