@@ -782,10 +782,17 @@ def all(request):
   """/all - Show a list of up to DEFAULT_LIMIT recent issues."""
   offset = _clean_int(request.GET.get('offset'), 0, 0)
   limit = _clean_int(request.GET.get('limit'), DEFAULT_LIMIT, 1, 100)
+  closed = request.GET.get('closed')
 
-  query = db.GqlQuery('SELECT * FROM Issue '
-                      'WHERE closed = FALSE AND private = FALSE '
-                      'ORDER BY modified DESC')
+  if closed:
+    query = db.GqlQuery('SELECT * FROM Issue '
+                        'WHERE private = FALSE '
+                        'ORDER BY modified DESC')
+  else:
+    query = db.GqlQuery('SELECT * FROM Issue '
+                        'WHERE closed = FALSE AND private = FALSE '
+                        'ORDER BY modified DESC')
+
   # Fetch one more to see if there should be a 'next' link
   issues = query.fetch(limit+1, offset)
   more = bool(issues[limit:])
