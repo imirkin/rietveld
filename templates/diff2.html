@@ -143,13 +143,13 @@ function go() {
     Left: <a href="{%url codereview.views.diff issue.key.id,ps_left.key.id,patch_left.filename%}{%urlappend_view_settings%}"
              title="View regular side by side diff">Side by side diff</a>
           |
-          <a href="{%url codereview.views.download_patch issue.key.id,ps_left.key.id,patch_left.key.id}"
+          <a href="{%url codereview.views.download_patch issue.key.id,ps_left.key.id,patch_left.key.id%}"
              title="Download patch for {{patch_left.filename}}">Download</a>
           <br/>
     Right: <a href="{%url codereview.views.diff issue.key.id,ps_right.key.id,patch_right.filename%}{%urlappend_view_settings%}"
               title="View regular side by side diff">Side by side diff</a>
            |
-           <a href="{%url codereview.views.download_patch issue.key.id,ps_right.key.id,patch_right.key.id}"
+           <a href="{%url codereview.views.download_patch issue.key.id,ps_right.key.id,patch_right.key.id%}"
              title="Download patch for {{patch_right.filename}}">Download</a>
     {%if user%}
   </div>
