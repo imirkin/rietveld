@@ -783,6 +783,8 @@ def all(request):
   offset = _clean_int(request.GET.get('offset'), 0, 0)
   limit = _clean_int(request.GET.get('limit'), DEFAULT_LIMIT, 1, 100)
   closed = request.GET.get('closed')
+  if closed:
+    closed = "&closed=1"
 
   if closed:
     query = db.GqlQuery('SELECT * FROM Issue '
@@ -799,16 +801,16 @@ def all(request):
   if more:
     del issues[limit:]
   if more:
-    next = '%s?offset=%d&limit=%d' % (reverse(all), offset+limit, limit)
+    next = '%s?offset=%d&limit=%d%s' % (reverse(all), offset+limit, limit, closed)
   else:
     next = ''
   if offset > 0:
-    prev = '%s?offset=%d&limit=%d' % (reverse(all), max(0, offset-limit), limit)
+    prev = '%s?offset=%d&limit=%d%s' % (reverse(all), max(0, offset-limit), limit, closed)
   else:
     prev = ''
   newest = ''
   if offset > limit:
-    newest = '%s?limit=%d' % (reverse(all), limit)
+    newest = '%s?limit=%d%s' % (reverse(all), limit, closed)
 
   _optimize_draft_counts(issues)
   return respond(request, 'all.html',
