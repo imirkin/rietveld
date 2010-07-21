@@ -10,6 +10,8 @@
 &laquo; {{patch.prev.filename}}</a> ('k'){%else%}
 <span class="disabled">&laquo; no previous file</span>{%endif%}
 |
+<b>{{patch.filename}}</b>
+|
 {%if patch.next%}
 <a id="nextFile"
    href="{%ifequal view_style 'patch'%}{%url codereview.views.patch issue.key.id,patchset.key.id,patch.next.key.id%}{%else%}{%url codereview.views.diff issue.key.id,patchset.key.id,patch.next.filename%}{%endifequal%}{%urlappend_view_settings%}">
