@@ -182,6 +182,25 @@ class PatchSet(db.Model):
     # For older patchsets n_comments is None.
     return self.n_comments or 0
 
+  _num_open_comments = None
+
+  @property
+  def num_open_comments(self):
+    """The number of comments that the owner hasn't replied to."""
+    if self._num_open_comments is not None:
+      return self._num_open_comments
+
+    count = 0
+    for patch in self.patch_set:
+      for comment in patch.comment_set:
+        if not comment.draft:
+          if comment.author == self.owner:
+            count -= 1
+          else:
+            count += 1
+    self._num_open_comments = count
+    return count
+
 
 class Message(db.Model):
   """A copy of a message sent out in email.
