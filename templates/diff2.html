@@ -177,8 +177,6 @@ doesn't work.  Go figure.  Bleah.  So use absolute URLs.
 &laquo; {{patch_right.prev.filename}}</a> ('k'){%else%}
 <span class="disabled">&laquo; no previous file</span>{%endif%}
 |
-<b>{{patch_right.filename}}</b>
-|
 {%if patch_right.next%}
 <a id="nextFile"
    href="{%url codereview.views.diff2 issue.key.id,ps_left.key.id,ps_right.key.id,patch_right.next.filename%}{%urlappend_view_settings%}">
@@ -205,6 +203,7 @@ Toggle Intra-line Diffs</a> ('i')
 <table border="0" cellpadding="0" cellspacing="0" id="thecode"
        ondblclick="M_handleTableDblClick(event)" width="100%">
 
+<tr><th colspan="2">{{patch_right.filename}}</th></tr>
 <tr><th>LEFT</th><th>RIGHT</th></tr>
 
 {%if patch_right.is_binary %}
@@ -221,7 +220,7 @@ Toggle Intra-line Diffs</a> ('i')
 {%endif%}
 
 <tr><th>LEFT</th><th>RIGHT</th></tr>
-
+<tr><th colspan="2">{{patch_right.filename}}</th></tr>
 </table>
 
 </div>
@@ -232,8 +231,6 @@ Toggle Intra-line Diffs</a> ('i')
    href="{%url codereview.views.diff2 issue.key.id,ps_left.key.id,ps_right.key.id,patch_right.prev.filename%}{%urlappend_view_settings%}">
 &laquo; {{patch_right.prev.filename}}</a> ('k'){%else%}
 <span class="disabled">&laquo; no previous file</span>{%endif%}
-|
-<b>{{patch_right.filename}}</b>
 |
 {%if patch_right.next%}
 <a id="nextFile"
