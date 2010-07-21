@@ -1845,6 +1845,51 @@ M_HookState.prototype.respond = function() {
   }
 };
 
+/**
+ * If the currently selected hook is a comment, call "done" on it.
+ * Prefer the right side of the table.
+ */
+M_HookState.prototype.done = function() {
+  var hooks = this.visibleHookCache;
+  if (this.hookPos >= 0 && this.hookPos < hooks.length &&
+      M_isElementVisible(this.win, hooks[this.hookPos].cells[0])) {
+    // Go through this tr and try calling done on the last comment. The general
+    // hope is that these are returned in DOM order
+    var comments = hooks[this.hookPos].getElementsByTagName("div");
+    var commentsLength = comments.length;
+    if (comments && commentsLength == 0) {
+      // Don't give up too early and look a bit forward
+      var sibling = hooks[this.hookPos].nextSibling;
+      while (sibling && sibling.tagName != "TR") {
+        sibling = sibling.nextSibling;
+      }
+      comments = sibling.getElementsByTagName("div");
+      commentsLength = comments.length;
+    }
+    if (comments && commentsLength > 0) {
+      var last = null;
+      for (var i = commentsLength - 1; i >= 0; i--) {
+        if (comments[i].getAttribute("name") == "comment-border") {
+          last = comments[i];
+          break;
+        }
+      }
+      if (last) {
+        var links = last.getElementsByTagName("a");
+        if (links) {
+          for (var i = links.length - 1; i >= 0; i--) {
+            if (links[i].getAttribute("name") == "comment-done" &&
+                links[i].style.display != "none") {
+              document.location.href = links[i].href;
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
 // Intra-line diff handling
 
 /**
@@ -2128,6 +2173,8 @@ function M_keyPress(evt) {
       M_expandAllInlineComments();
     } else if (key == 'c') {
       M_collapseAllInlineComments();
+    } else if (key == 'd') {
+      if (hookState) hookState.done();
     } else if (key == '\r' || key == '\n') {
       // respond to current comment
       if (hookState) hookState.respond();
