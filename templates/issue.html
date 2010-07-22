@@ -146,7 +146,7 @@
              {%if forloop.last%}{%else%}style="display: none;"{%endif%}>
           <div class="message-body">
             <pre name="cl-message-{{forloop.counter0}}"
-            >{{message.text|wordwrap:80|urlizetrunc:80}}</pre>
+            >{{message.text|urlizetrunc:80}}</pre>
           </div>
           <div class="message-actions">
             {%if user%}
