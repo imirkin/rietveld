@@ -378,7 +378,7 @@ class HttpRpcServer(AbstractRpcServer):
     """Save the cookie jar after authentication."""
     login_url = "http://%s%s" % (self.host, login_url)
     print "Login URL: %r" % login_url
-    username = raw_input("Username: ")
+    username = raw_input("Username: ").strip()
     password = getpass.getpass("Password: ")
     fields = (("user_name", username), ("password", password))
     req = self._CreateRequest(
