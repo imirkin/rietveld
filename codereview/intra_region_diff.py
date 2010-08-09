@@ -65,6 +65,11 @@ COLOR_SCHEME = {
           'diff':       'newdark',
           'bckgrnd':    'newlight',
          },
+  'change': {
+          'match':      'changelight',
+          'diff':       'changedark',
+          'bckgrnd':    'changelight',
+  },
   'oldmove': {
           'match':      'movelight',
           'diff':       'oldmovedark',

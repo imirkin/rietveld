@@ -560,6 +560,7 @@ class Account(db.Model):
   uploadpy_hint = db.BooleanProperty(default=True)
   notify_by_email = db.BooleanProperty(default=True)
   notify_by_chat = db.BooleanProperty(default=False)
+  changed_yellow = db.BooleanProperty(default=False)
 
   # Current user's Account.  Updated by middleware.AddUserToRequestMiddleware.
   current_user_account = None

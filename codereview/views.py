@@ -338,6 +338,10 @@ class SettingsForm(forms.Form):
     required=False,
     help_text='You must accept the invite for this to work.')
 
+  changed_yellow = forms.BooleanField(
+    required=False,
+    help_text='Select to see changed sections in yellow rather than red/green')
+
   def clean_nickname(self):
     nickname = self.cleaned_data.get('nickname')
     # Check for allowed characters
@@ -2872,6 +2876,7 @@ def settings(request):
                                  'column_width': default_column_width,
                                  'notify_by_email': account.notify_by_email,
                                  'notify_by_chat': account.notify_by_chat,
+                                 'changed_yellow': account.changed_yellow,
                                  })
     chat_status = None
     if account.notify_by_chat:
@@ -2893,6 +2898,7 @@ def settings(request):
     account.default_context = form.cleaned_data.get('context')
     account.default_column_width = form.cleaned_data.get('column_width')
     account.notify_by_email = form.cleaned_data.get('notify_by_email')
+    account.changed_yellow = form.cleaned_data.get('changed_yellow')
     notify_by_chat = form.cleaned_data.get('notify_by_chat')
     must_invite = notify_by_chat and not account.notify_by_chat
     account.notify_by_chat = notify_by_chat

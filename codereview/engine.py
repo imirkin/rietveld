@@ -443,6 +443,9 @@ def _TableRowGenerator(old_patch, old_dict, old_max, old_snapshot,
   old_offset = new_offset = 0
   row_count = 0
 
+  user = users.get_current_user()
+  acct = models.Account.get_account_for_user(user)
+
   # Render a row with a message if a side is empty or both sides are equal.
   if old_patch == new_patch and (old_max == 0 or new_max == 0):
     if old_max == 0:
@@ -532,6 +535,11 @@ def _TableRowGenerator(old_patch, old_dict, old_max, old_snapshot,
       old_tag = 'old'
       new_tag = 'new'
 
+      if tag == 'replace' and acct.changed_yellow:
+        old_tag = 'change'
+        new_tag = 'change'
+        tag = 'replacey'
+
       old_diff_out = intra_region_diff.RenderIntraRegionDiff(
         old_lines, old_chunks, old_tag, ratio,
         limit=colwidth, indent=indent, mark_tabs=True,
@@ -591,13 +599,27 @@ def _RenderDiffInternal(old_buff, new_buff, ndigits, tag, frag_list,
                         old_snapshot, new_snapshot,
                         colwidth, debug, request):
   """Helper for _TableRowGenerator()."""
+  old = 'old'
+  new = 'new'
+
   obegin = (intra_region_diff.BEGIN_TAG %
-            intra_region_diff.COLOR_SCHEME['old']['match'])
+            intra_region_diff.COLOR_SCHEME[old]['match'])
   nbegin = (intra_region_diff.BEGIN_TAG %
-            intra_region_diff.COLOR_SCHEME['new']['match'])
+            intra_region_diff.COLOR_SCHEME[new]['match'])
   oend = intra_region_diff.END_TAG
   nend = oend
+
   user = users.get_current_user()
+  acct = models.Account.get_account_for_user(user)
+  if tag.startswith('replace') and acct.changed_yellow:
+    old = 'change'
+    new = 'change'
+    tag = 'replacey'
+
+  ochangebegin = (intra_region_diff.BEGIN_TAG %
+                  intra_region_diff.COLOR_SCHEME[old]['match'])
+  nchangebegin = (intra_region_diff.BEGIN_TAG %
+                  intra_region_diff.COLOR_SCHEME[new]['match'])
 
   for i in xrange(len(old_buff)):
     tg = tag
@@ -607,14 +629,20 @@ def _RenderDiffInternal(old_buff, new_buff, ndigits, tag, frag_list,
     new_intra_diff, new_has_newline, new_debug_info = new_out
 
     frags = frag_list[i]
+
+    if tag.startswith("replace"):
+      ob, nb = ochangebegin, nchangebegin
+    else:
+      ob, nb = obegin, nbegin
+
     # Render left text column
     frags.append(_RenderDiffColumn(old_patch, old_valid, tag, ndigits,
-                                   old_lineno, obegin, oend, old_intra_diff,
+                                   old_lineno, ob, oend, old_intra_diff,
                                    do_ir_diff, old_has_newline, 'old'))
 
     # Render right text column
     frags.append(_RenderDiffColumn(new_patch, new_valid, tag, ndigits,
-                                   new_lineno, nbegin, nend, new_intra_diff,
+                                   new_lineno, nb, nend, new_intra_diff,
                                    do_ir_diff, new_has_newline, 'new'))
 
     # End rendering the first row
@@ -673,7 +701,7 @@ def _RenderDiffColumn(patch, line_valid, tag, ndigits, lineno, begin, end,
       lno = '%*d' % (ndigits, lineno)
     else:
       lno = _MarkupNumber(ndigits, lineno, 'u')
-    if tag == 'replace':
+    if tag.startswith('replace'):
       col_content = ('%s%s %s%s' % (begin, lno, end, intra_diff))
       # If IR diff has been turned off or there is no matching new line at
       # the end then switch to dark background CSS style.
