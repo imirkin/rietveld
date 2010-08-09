@@ -1366,6 +1366,10 @@ def _calculate_delta(patch, patchset_id, patchsets):
           if text != patch.text:
             delta.append(other.key().id())
           break
+      else:
+        # We could not find the file in the previous patchset. It must
+        # be new wrt that patchset.
+        delta.append(other.key().id())
     else:
       # Note: calling list(other.patch_set) would consume too much memory and
       # sometimes fail with MemoryError.  So do this even if it's slower.
@@ -1375,6 +1379,10 @@ def _calculate_delta(patch, patchset_id, patchsets):
             delta.append(other.key().id())
           opatch.text = None  # Reduce memory usage.
           break
+      else:
+        # We could not find the file in the previous patchset. It must
+        # be new wrt that patchset.
+        delta.append(other.key().id())
   return delta
 
 
