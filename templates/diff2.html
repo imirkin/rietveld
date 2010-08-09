@@ -135,17 +135,19 @@ function go() {
     Jump to: <select onchange="M_jumpToPatch(this, {{issue.key.id}}, '{{ps_left.key.id}}:{{ps_right.key.id}}', false, 'diff2');">
       {% for jump_patch in ps_right.patches %}
         <option value="{{jump_patch.filename}}"
-         {%ifequal jump_patch.key.id patch.key.id%} selected="selected"{%endifequal%}>{{jump_patch.filename}}</option>
+         {%ifequal jump_patch.key.id patch_right.key.id%} selected="selected"{%endifequal%}>{{jump_patch.filename}}</option>
       {% endfor %}
     </select>
   </div>
   <div>
+    {% if patch_left.key.id %}
     Left: <a href="{%url codereview.views.diff issue.key.id,ps_left.key.id,patch_left.filename%}{%urlappend_view_settings%}"
              title="View regular side by side diff">Side by side diff</a>
           |
           <a href="{%url codereview.views.download_patch issue.key.id,ps_left.key.id,patch_left.key.id%}"
              title="Download patch for {{patch_left.filename}}">Download</a>
           <br/>
+    {% endif %}
     Right: <a href="{%url codereview.views.diff issue.key.id,ps_right.key.id,patch_right.filename%}{%urlappend_view_settings%}"
               title="View regular side by side diff">Side by side diff</a>
            |

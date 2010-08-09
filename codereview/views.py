@@ -2056,9 +2056,11 @@ def _get_diff2_data(request, ps_left_id, ps_right_id, patch_id, context,
   patch_left = models.Patch.gql('WHERE patchset = :1 AND filename = :2',
                                 ps_left, patch_right.filename).get()
   if patch_left is None:
-    return HttpResponseNotFound(
-        "Patch set %s doesn't have a patch with filename %s" %
-        (ps_left_id, patch_right.filename))
+    patch_left = models.Patch()
+    patch_left.patchset = ps_left
+    patch_left.filename = patch_right.filename
+    patch_left.text = ''
+    patch_left.patched_content = patch_right.content
   try:
     new_content_left = patch_left.get_patched_content()
     new_content_right = patch_right.get_patched_content()
