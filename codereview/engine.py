@@ -444,7 +444,10 @@ def _TableRowGenerator(old_patch, old_dict, old_max, old_snapshot,
   row_count = 0
 
   user = users.get_current_user()
-  acct = models.Account.get_account_for_user(user)
+  if user.email():
+    acct = models.Account.get_account_for_user(user)
+  else:
+    acct = None
 
   # Render a row with a message if a side is empty or both sides are equal.
   if old_patch == new_patch and (old_max == 0 or new_max == 0):
@@ -535,7 +538,7 @@ def _TableRowGenerator(old_patch, old_dict, old_max, old_snapshot,
       old_tag = 'old'
       new_tag = 'new'
 
-      if tag == 'replace' and acct.changed_yellow:
+      if tag == 'replace' and acct and acct.changed_yellow:
         old_tag = 'change'
         new_tag = 'change'
         tag = 'replacey'
@@ -610,11 +613,12 @@ def _RenderDiffInternal(old_buff, new_buff, ndigits, tag, frag_list,
   nend = oend
 
   user = users.get_current_user()
-  acct = models.Account.get_account_for_user(user)
-  if tag.startswith('replace') and acct.changed_yellow:
-    old = 'change'
-    new = 'change'
-    tag = 'replacey'
+  if user.email():
+    acct = models.Account.get_account_for_user(user)
+    if tag.startswith('replace') and acct.changed_yellow:
+      old = 'change'
+      new = 'change'
+      tag = 'replacey'
 
   ochangebegin = (intra_region_diff.BEGIN_TAG %
                   intra_region_diff.COLOR_SCHEME[old]['match'])
