@@ -146,7 +146,7 @@
              {%if forloop.last%}{%else%}style="display: none;"{%endif%}>
           <div class="message-body">
             <pre name="cl-message-{{forloop.counter0}}"
-            >{{message.text|urlizetrunc:80}}</pre>
+            >{{message.text|wordwrap:80|urlizetrunc:80}}</pre>
             {%for comment in message.comments%}
               {%ifchanged comment.patch.filename comment.left commment.patch.patchset.key.id%}
               <div style="padding-top: 0.5em;">File <a href="{%url codereview.views.diff issue.key.id,comment.patch.patchset.key.id,comment.patch.filename%}">{{comment.patch.filename}}</a> {%if comment.left%}(left){%endif%}</div>
@@ -158,7 +158,7 @@
                   </span>
                   <span id="line-preview-{{forloop.parentloop.counter0}}-{{forloop.counter0}}" style="white-space: nowrap; overflow: hidden" class="extra">{{comment.text|truncatewords:15}}</span>
                 </div>
-                <pre id="line-comment-{{forloop.parentloop.counter0}}-{{forloop.counter0}}" style="display:none">{{comment.text|wordwrap:"72"}}</pre>
+                <pre id="line-comment-{{forloop.parentloop.counter0}}-{{forloop.counter0}}" style="display:none">{{comment.text|wordwrap:80}}</pre>
               </div>
             {%endfor%}
           </div>
