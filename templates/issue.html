@@ -147,6 +147,20 @@
           <div class="message-body">
             <pre name="cl-message-{{forloop.counter0}}"
             >{{message.text|urlizetrunc:80}}</pre>
+            {%for comment in message.comments%}
+              {%ifchanged comment.patch.filename comment.left commment.patch.patchset.key.id%}
+              <div style="padding-top: 0.5em;">File <a href="{%url codereview.views.diff issue.key.id,comment.patch.patchset.key.id,comment.patch.filename%}">{{comment.patch.filename}}</a> {%if comment.left%}(left){%endif%}</div>
+              {%endifchanged%}
+              <div class="line">
+                <div onclick="M_switchCommentCommon_('line', '{{forloop.parentloop.counter0}}-{{forloop.counter0}}')" style="cursor: pointer;">
+                  <span>
+                    <a href="{%url codereview.views.diff issue.key.id,comment.patch.patchset.key.id,comment.patch.filename%}#{%if comment.left%}old{%else%}new{%endif%}code{{comment.lineno}}" onclick="window.event.stopPropagation()">Line {{comment.lineno}}</a>:
+                  </span>
+                  <span id="line-preview-{{forloop.parentloop.counter0}}-{{forloop.counter0}}" class="header extra">{{comment.text|truncatewords:15}}</span>
+                </div>
+                <pre id="line-comment-{{forloop.parentloop.counter0}}-{{forloop.counter0}}" style="display:none">{{comment.text|wordwrap:"72"}}</pre>
+              </div>
+            {%endfor%}
           </div>
           <div class="message-actions">
             {%if user%}
@@ -162,8 +176,8 @@
 
       </div>
     {%endfor%}
-    
-    
+
+
     <div>
       <a href="javascript:M_showAllComments('cl', {{messages|length}})">
       Expand All Messages</a>
@@ -197,7 +211,7 @@
       <input type="hidden" name="message_only" value="1" />
       <input type="submit" value="Send Message" />
       <input type="button" value="Discard" name="discard" />
-      <input type="checkbox" name="send_mail" value="1" 
+      <input type="checkbox" name="send_mail" value="1"
              id="message-reply-send-mail" checked="checked" />
       <label>Send mail to reviewers</label>
     </form>

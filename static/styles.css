@@ -755,6 +755,23 @@ span.visualtab {
   margin-bottom: .8em;
 }
 
+.message-body .line {
+  margin: 0px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.message-body .line .header {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.message-body .line pre {
+  margin: 0px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
 .popup {
   visibility: hidden;
   background-color: #cdf2a5;

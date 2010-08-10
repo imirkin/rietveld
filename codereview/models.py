@@ -438,6 +438,7 @@ class Comment(db.Model):
   text = db.TextProperty()
   left = db.BooleanProperty()
   draft = db.BooleanProperty(required=True, default=True)
+  published_message = db.ReferenceProperty(Message)
 
   def complete(self, patch):
     """Set the shorttext and buckets attributes."""

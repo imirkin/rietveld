@@ -31,6 +31,7 @@ import random
 import re
 import smtplib
 import textwrap
+import types
 import urllib
 from cStringIO import StringIO
 from xml.etree import ElementTree
@@ -1505,6 +1506,10 @@ def show(request, form=None):
   has_draft_message = False
   for msg in issue.message_set.order('date'):
     if not msg.draft:
+      msg.comments = list(models.Comment.gql(
+          'WHERE ANCESTOR IS :1 AND published_message = :2', issue, msg))
+      msg.comments.sort(
+        key=lambda x: (x.patch.patchset.created, x.patch.filename, x.left))
       messages.append(msg)
     elif msg.draft and request.user and msg.sender == request.user.email():
       has_draft_message = True
@@ -2456,9 +2461,16 @@ def publish(request):
                       comments,
                       form.cleaned_data['send_mail'],
                       draft=draft_message)
-  tbd.append(msg)
+  tbd.insert(0, msg)
 
   for obj in tbd:
+    if type(obj) in [types.ListType, types.TupleType]:
+      for o in obj:
+        if isinstance(o, models.Comment):
+          # It would appear as though if we do this before msg has
+          # been put into the db, the link does not get stored in the
+          # database.
+          o.published_message = msg
     db.put(obj)
 
   _notify_issue(request, issue, 'Comments published')
@@ -2585,7 +2597,7 @@ def _make_message(request, issue, message, comments=None, send_mail=False,
   else:
     details = ''
   message = message.replace('\r\n', '\n')
-  text = ((message.strip() + '\n\n' + details.strip())).strip()
+  text = message.strip()
   if draft is None:
     msg = models.Message(issue=issue,
                          subject=subject,
