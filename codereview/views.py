@@ -2554,9 +2554,9 @@ def _get_draft_details(request, comments):
     else:
       if 1 <= c.lineno <= len(file_lines):
         context = file_lines[c.lineno - 1].strip()
-    output.append('\nLine %d: %s\n%s' % (
-        c.lineno, context,
-        textwrap.fill(c.text.rstrip(), replace_whitespace=False)))
+    lines = c.text.rstrip().splitlines()
+    lines = map(lambda x: textwrap.fill(x, replace_whitespace=False), lines)
+    output.append('\nLine %d: %s\n%s' % (c.lineno, context, '\n'.join(lines)))
   if modified_patches:
     db.put(modified_patches)
   return '\n'.join(output)
