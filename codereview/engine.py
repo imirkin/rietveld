@@ -444,7 +444,7 @@ def _TableRowGenerator(old_patch, old_dict, old_max, old_snapshot,
   row_count = 0
 
   user = users.get_current_user()
-  if user.email():
+  if user and user.email():
     acct = models.Account.get_account_for_user(user)
   else:
     acct = None
@@ -613,7 +613,7 @@ def _RenderDiffInternal(old_buff, new_buff, ndigits, tag, frag_list,
   nend = oend
 
   user = users.get_current_user()
-  if user.email():
+  if user and user.email():
     acct = models.Account.get_account_for_user(user)
     if tag.startswith('replace') and acct.changed_yellow:
       old = 'change'
