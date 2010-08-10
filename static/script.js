@@ -2194,7 +2194,7 @@ function M_changelistKeyPress(evt) {
   return M_keyPressCommon(evt, function(key) {
     if (key == 'o' || key == '\r' || key == '\n') {
       if (dashboardState) {
-	var child = dashboardState.curTR.cells[3].firstChild;
+	var child = dashboardState.curTR.cells[2].firstChild;
 	while (child && child.nextSibling && child.nodeName != "A") {
 	  child = child.nextSibling;
 	}

@@ -35,7 +35,6 @@
   <table id="queues" style="clear:both;">
     <tr align="left">
       <th colspan="2"></th>
-      <th>Unified diffs</th>
       <th>Side-by-side diffs</th>
       <th>Delta from patch set</th>
       <th colspan="3">Stats</th>
@@ -44,22 +43,16 @@
 
     {%for patch in patchset.patches%}
       <tr name="patch">
-        <td class="first" width="14"><img src="{{media_url}}closedtriangle.gif" 
+        <td class="first" width="14"><img src="{{media_url}}closedtriangle.gif"
     style="visibility: hidden;" width="12" height="9" /></td>
         <td>{%if patch.status%}{{patch.status}}{%endif%}</td>
         <td>
           <a class="noul"
-             href="{%url codereview.views.patch issue.key.id,patchset.key.id,patch.key.id%}">
+             href="{%url codereview.views.diff issue.key.id,patchset.key.id,patch.filename%}">
             {{patch.filename}}
           </a>
 	  <a style="text-decoration:none" id="show-{{patch.key.id}}" href="javascript:M_showInlineDiff('{{patch.key.id}}', '{%url codereview.views.download_patch issue.key.id,patchset.key.id,patch.key.id%}?html=1');">(show)</a>
 	  <a style="text-decoration:none;display:none" id="hide-{{patch.key.id}}" href="javascript:M_hideInlineDiff('{{patch.key.id}}');">(hide)</a>
-        </td>
-        <td>
-          <a class="noul"
-             href="{%url codereview.views.diff issue.key.id,patchset.key.id,patch.filename%}">
-            View
-          </a>
         </td>
         <td style="white-space: nowrap">
         {%for delta in patch.parsed_deltas%}
