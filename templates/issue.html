@@ -156,7 +156,7 @@
                   <span>
                     <a href="{%url codereview.views.diff issue.key.id,comment.patch.patchset.key.id,comment.patch.filename%}#{%if comment.left%}old{%else%}new{%endif%}code{{comment.lineno}}" onclick="window.event.stopPropagation()">Line {{comment.lineno}}</a>:
                   </span>
-                  <span id="line-preview-{{forloop.parentloop.counter0}}-{{forloop.counter0}}" class="header extra">{{comment.text|truncatewords:15}}</span>
+                  <span id="line-preview-{{forloop.parentloop.counter0}}-{{forloop.counter0}}" style="white-space: nowrap; overflow: hidden" class="extra">{{comment.text|truncatewords:15}}</span>
                 </div>
                 <pre id="line-comment-{{forloop.parentloop.counter0}}-{{forloop.counter0}}" style="display:none">{{comment.text|wordwrap:"72"}}</pre>
               </div>
