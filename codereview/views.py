@@ -1509,7 +1509,8 @@ def show(request, form=None):
       msg.comments = list(models.Comment.gql(
           'WHERE ANCESTOR IS :1 AND published_message = :2', issue, msg))
       msg.comments.sort(
-        key=lambda x: (x.patch.patchset.created, x.patch.filename, x.left))
+        key=lambda x: (x.patch.patchset.created, x.patch.filename,
+                       x.left, x.lineno))
       messages.append(msg)
     elif msg.draft and request.user and msg.sender == request.user.email():
       has_draft_message = True
