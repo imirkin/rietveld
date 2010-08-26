@@ -484,6 +484,10 @@ class Comment(db.Model):
     else:
       self.shorttext = ""
 
+    self.unquoted = "\n".join(bucket.text
+                              for bucket in self.buckets
+                              if not bucket.quoted)
+
 
 class Bucket(db.Model):
   """A 'Bucket' of text.

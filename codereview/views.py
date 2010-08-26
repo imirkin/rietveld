@@ -1511,6 +1511,8 @@ def show(request, form=None):
       msg.comments.sort(
         key=lambda x: (x.patch.patchset.created, x.patch.filename,
                        x.left, x.lineno))
+      for comment in msg.comments:
+        comment.complete(None)
       messages.append(msg)
     elif msg.draft and request.user and msg.sender == request.user.email():
       has_draft_message = True
