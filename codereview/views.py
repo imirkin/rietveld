@@ -1758,7 +1758,7 @@ def mailissue(request):
     if not IS_DEV:
       return HttpResponse('Login required', status=401)
   issue = request.issue
-  msg = _make_message(request, issue, '', '', True)
+  msg = _make_message(request, issue, request.POST.get('message', ''), '', True)
   msg.put()
   _notify_issue(request, issue, 'Mailed')
 
