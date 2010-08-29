@@ -91,7 +91,8 @@ VCS_UNKNOWN = "Unknown"
 # whitelist for non-binary filetypes which do not start with "text/"
 # .mm (Objective-C) shows up as application/x-freemind on my Linux box.
 TEXT_MIMETYPES = ['application/javascript', 'application/x-javascript',
-                  'application/xml', 'application/x-freemind']
+                  'application/xml', 'application/x-freemind', 
+                  'application/x-sh']
 
 VCS_ABBREVIATIONS = {
   VCS_MERCURIAL.lower(): VCS_MERCURIAL,
@@ -456,7 +457,7 @@ group.add_option("-q", "--quiet", action="store_const", const=0,
                  dest="verbose", help="Print errors only.")
 group.add_option("-v", "--verbose", action="store_const", const=2,
                  dest="verbose", default=1,
-                 help="Print info level logs (default).")
+                 help="Print info level logs.")
 group.add_option("--noisy", action="store_const", const=3,
                  dest="verbose", help="Print all logs.")
 # Review server
@@ -579,15 +580,15 @@ def GetRpcServer(server, email=None, host_override=None, save_cookies=True,
       local_email = GetEmail("Email (login for uploading to %s)" % server)
     password = None
     if keyring:
-      password = keyring.get_password(options.server, email)
+      password = keyring.get_password(host, local_email)
     if password is not None:
       print "Using password from system keyring."
     else:
-      password = getpass.getpass("Password for %s: " % email)
+      password = getpass.getpass("Password for %s: " % local_email)
       if keyring:
         answer = raw_input("Store password in system keyring?(y/N) ").strip()
         if answer == "y":
-          keyring.set_password(options.server, email, password)
+          keyring.set_password(host, local_email, password)
     return (local_email, password)
 
   return rpc_server_class(server,
@@ -1094,7 +1095,7 @@ class SubversionVCS(VersionControlSystem):
                                     universal_newlines=universal_newlines,
                                     silent_ok=True)
           elif ret_code:
-            ErrorExit("Got error status from 'svn cat %s'", filename)
+            ErrorExit("Got error status from 'svn cat %s'" % filename)
         if not is_binary:
           args = []
           if self.rev_start:
@@ -1184,7 +1185,10 @@ class GitVCS(VersionControlSystem):
   def GenerateDiff(self, extra_args):
     extra_args = extra_args[:]
     if self.options.revision:
-      extra_args = [self.options.revision] + extra_args
+      if ":" in self.options.revision:
+        extra_args = self.options.revision.split(":", 1) + extra_args
+      else:
+        extra_args = [self.options.revision] + extra_args
 
     # --no-ext-diff is broken in some versions of Git, so try to work around
     # this by overriding the environment (but there is still a problem if the
@@ -1521,8 +1525,10 @@ def LoadSubversionAutoProperties():
       - config file doesn't exist, or
       - 'enable-auto-props' is not set to 'true-like-value' in [miscellany].
   """
-  # Todo(hayato): Windows users might use different path for configuration file.
-  subversion_config = os.path.expanduser("~/.subversion/config")
+  if os.name == 'nt':
+    subversion_config = os.environ.get("APPDATA") + "\\Subversion\\config"
+  else:
+    subversion_config = os.path.expanduser("~/.subversion/config")
   if not os.path.exists(subversion_config):
     return {}
   config = ConfigParser.ConfigParser()

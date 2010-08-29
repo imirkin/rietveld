@@ -45,7 +45,7 @@ from google.appengine.api import xmpp
 from google.appengine.ext import db
 from google.appengine.ext.db import djangoforms
 from google.appengine.runtime import DeadlineExceededError
-from google.appengine.runtime.apiproxy_errors import CapabilityDisabledError
+from google.appengine.runtime import apiproxy_errors
 
 # Django imports
 # TODO(guido): Don't import classes/functions directly.
@@ -433,7 +433,7 @@ def respond(request, template, params=None):
   except DeadlineExceededError:
     logging.exception('DeadlineExceededError')
     return HttpResponse('DeadlineExceededError', status=503)
-  except CapabilityDisabledError, err:
+  except apiproxy_errors.CapabilityDisabledError, err:
     logging.exception('CapabilityDisabledError: %s', err)
     return HttpResponse('Rietveld: App Engine is undergoing maintenance. '
                         'Please try again in a while. ' + str(err),
@@ -444,6 +444,8 @@ def respond(request, template, params=None):
   except AssertionError:
     logging.exception('AssertionError')
     return HttpResponse('AssertionError')
+  finally:
+    library.user_cache.clear() # don't want this sticking around
 
 
 def _random_bytes(n):
@@ -818,6 +820,7 @@ def all(request):
     newest = '%s?limit=%d%s' % (reverse(all), limit, closed)
 
   _optimize_draft_counts(issues)
+  _load_users_for_issues(issues)
   return respond(request, 'all.html',
                  {'issues': issues, 'limit': limit,
                   'newest': newest, 'prev': prev, 'next': next,
@@ -865,9 +868,19 @@ def starred(request):
     issues = [issue for issue in models.Issue.get_by_id(stars)
                     if issue is not None
                     and _can_view_issue(request.user, issue)]
+    _load_users_for_issues(issues)
     _optimize_draft_counts(issues)
   return respond(request, 'starred.html', {'issues': issues})
 
+def _load_users_for_issues(issues):
+  """Load all user links for a list of issues in one go."""
+  user_dict = {}
+  for i in issues:
+    for e in i.reviewers + i.cc + [i.owner.email()]:
+      # keeping a count lets you track total vs. distinct if you want
+      user_dict[e] = user_dict.setdefault(e, 0) + 1
+
+  library.get_links_for_users(user_dict.keys())
 
 @user_key_required
 def show_user(request):
@@ -892,7 +905,9 @@ def _show_user(request):
       'ORDER BY modified DESC',
       datetime.datetime.now() - datetime.timedelta(days=7), user)
       if _can_view_issue(request.user, issue)]
-  _optimize_draft_counts(my_issues + review_issues + closed_issues)
+  all_issues = my_issues + review_issues + closed_issues
+  _load_users_for_issues(all_issues)
+  _optimize_draft_counts(all_issues)
   return respond(request, 'user.html',
                  {'email': user.email(),
                   'my_issues': my_issues,
@@ -1376,18 +1391,25 @@ def _calculate_delta(patch, patchset_id, patchsets):
         # be new wrt that patchset.
         delta.append(other.key().id())
     else:
-      # Note: calling list(other.patch_set) would consume too much memory and
-      # sometimes fail with MemoryError.  So do this even if it's slower.
-      for opatch in other.patch_set:
-        if patch.filename == opatch.filename:
-          if not patch.no_base_file and patch.text != opatch.text:
-            delta.append(other.key().id())
-          opatch.text = None  # Reduce memory usage.
+      # other (patchset) is too big to hold all the patches inside itself, so
+      # we need to go to the datastore.  Use the index to see if there's a
+      # patch against our current file in other.
+      query = models.Patch.all()
+      query.filter("filename =", patch.filename)
+      query.filter("patchset =", other.key())
+      other_patches = query.fetch(100)
+      if other_patches and len(other_patches) > 1:
+        logging.info("Got %s patches with the same filename for a patchset", 
+                     len(other_patches))
+      for op in other_patches:
+        if op.text != patch.text:
+          delta.append(other.key().id())
           break
       else:
         # We could not find the file in the previous patchset. It must
         # be new wrt that patchset.
         delta.append(other.key().id())
+
   return delta
 
 
@@ -2015,6 +2037,19 @@ def diff_skipped_lines(request, id_before, id_after, where, column_width):
   return _get_skipped_lines_response(rows, id_before, id_after, where, context)
 
 
+# there's no easy way to put a control character into a regex, so brute-force it
+# this is all control characters except \r, \n, and \t
+_badchars_re = re.compile(r'[\000\001\002\003\004\005\006\007\010\013\014\016\017\020\021\022\023\024\025\026\027\030\031\032\033\034\035\036\037]')
+
+
+def _strip_invalid_xml(s):
+  """Remove control chars other than \r\n\t from a string to be put in XML."""
+  if _badchars_re.search(s):
+    return ''.join(c for c in s if c >= ' ' or c in '\r\n\t')
+  else:
+    return s
+
+
 def _get_skipped_lines_response(rows, id_before, id_after, where, context):
   """Helper function that creates a Response object for skipped lines"""
   response_rows = []
@@ -2047,9 +2082,10 @@ def _get_skipped_lines_response(rows, id_before, id_after, where, context):
 
   # Create a usable structure for the JS part
   response = []
+  response_rows =  [_strip_invalid_xml(r) for r in response_rows]
   dom = ElementTree.parse(StringIO('<div>%s</div>' % "".join(response_rows)))
   for node in dom.getroot().getchildren():
-    content = "\n".join([ElementTree.tostring(x) for x in node.getchildren()])
+    content = [[x.items(), x.text] for x in node.getchildren()]
     response.append([node.items(), content])
   return HttpResponse(simplejson.dumps(response))
 
@@ -2162,6 +2198,20 @@ def _add_next_prev(patchset, patch):
                                   patchset))
   patchset.patches = patches  # Required to render the jump to select.
 
+  comment_query = models.Comment.all()
+  comment_query.ancestor(patchset)
+  account = models.Account.current_user_account
+  
+  # Get all comment counts with one query rather than one per patch.
+  comments_by_patch = {}
+  drafts_by_patch = {}
+  for c in comment_query:
+    pkey = models.Comment.patch.get_value_for_datastore(c)
+    if not c.draft:
+      comments_by_patch[pkey] = comments_by_patch.setdefault(pkey, 0) + 1
+    elif account and c.author == account.user:
+      drafts_by_patch[pkey] = drafts_by_patch.setdefault(pkey, 0) + 1
+
   last_patch = None
   next_patch = None
   last_patch_with_comment = None
@@ -2172,6 +2222,10 @@ def _add_next_prev(patchset, patch):
       if p.filename == patch.filename:
         found_patch = True
         continue
+
+      p._num_comments = comments_by_patch.get(p.key(), 0)
+      p._num_drafts = drafts_by_patch.get(p.key(), 0)
+
       if not found_patch:
           last_patch = p
           if p.num_comments > 0 or p.num_drafts > 0:
@@ -2636,9 +2690,11 @@ def _make_message(request, issue, message, comments=None, send_mail=False,
     body = django.template.loader.render_to_string(
       template, context, context_instance=RequestContext(request))
     logging.warn('Mail: to=%s; cc=%s', ', '.join(to), ', '.join(cc))
-    kwds = {}
-    if cc:
-      kwds['cc'] = [_encode_safely(address) for address in cc]
+    send_args = {'sender': my_email,
+                 'to': [_encode_safely(address) for address in to],
+                 'subject': _encode_safely(subject),
+                 'body': _encode_safely(body),
+                 'reply_to': _encode_safely(reply_to)}
 
     obj = email.message.Message()
     obj["Sender"] = "computertechnology@yext.com"
@@ -3095,6 +3151,18 @@ def _process_incoming_mail(raw_message, recipients):
                        text=db.Text(body, encoding=charset),
                        draft=False)
   msg.put()
+
+  # Add sender to reviewers if needed.
+  all_emails = [str(x).lower()
+                for x in [issue.owner.email()]+issue.reviewers+issue.cc]
+  if sender.lower() not in all_emails:
+    query = models.Account.all().filter('lower_email =', sender.lower())
+    account = query.get()
+    if account is not None:
+      issue.reviewers.append(account.email)  # e.g. account.email is CamelCase
+    else:
+      issue.reviewers.append(db.Email(sender))
+    issue.put()
 
 
 @login_required
