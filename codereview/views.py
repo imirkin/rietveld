@@ -2628,7 +2628,7 @@ def _make_message(request, issue, message, comments=None, send_mail=False,
     to.remove(my_email)
   if my_email in cc:
     cc.remove(my_email)
-  subject = '%s (issue%d)' % (issue.subject, issue.key().id())
+  subject = '[CR] %s (issue %d)' % (issue.subject, issue.key().id())
   if issue.message_set.count(1) > 0:
     subject = 'Re: ' + subject
   if comments:
