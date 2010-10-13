@@ -2680,12 +2680,12 @@ def _make_message(request, issue, message, comments=None, send_mail=False,
 
     obj = email.message.Message()
     obj["Sender"] = "computertechnology@yext.com"
-    obj["From"] = email.header.Header(_encode_safely(my_email), "utf8")
-    obj["To"] = email.header.Header(_encode_safely(", ".join(to)), "utf8")
-    obj["Subject"] = email.header.Header(_encode_safely(subject), "utf8")
-    obj["Reply-To"] = email.header.Header(_encode_safely(reply_to), "utf8")
+    obj["From"] = email.header.Header(my_email)
+    obj["To"] = email.header.Header(", ".join(to))
+    obj["Subject"] = email.header.Header(subject)
+    obj["Reply-To"] = email.header.Header(reply_to)
     if cc:
-      obj["CC"] = email.header.Header(_encode_safely(", ".join(cc)), "utf8")
+      obj["CC"] = email.header.Header(", ".join(cc))
     obj.set_payload(_encode_safely(body), "utf8")
 
     smtp = smtplib.SMTP('localhost')
