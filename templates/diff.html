@@ -2,21 +2,7 @@
 {%block body%}
 
 <script language="JavaScript" type="text/javascript"><!--
-function keyPressIntermediary(evt) {
-  return M_keyPress(evt);
-}
-document.onkeypress = keyPressIntermediary;
-
-function keyPressIntermediaryOnKeyDown(evt) {
-  if (!M_keyPressCommon(evt, function() { return true; }, M_commentTextKeyPress_)) {
-    M_stopBubble(window, evt);
-  }
-}
-
-if (M_isKHTML()) {
-  document.documentElement.addEventListener('keydown', keyPressIntermediaryOnKeyDown, true);
-}
-
+document.onkeydown = M_keyDown;
 {%if user%}
 logged_in = true;
 {%else%}
@@ -188,7 +174,6 @@ function go() {
 <div class="codenav">{%include "file_navigation.html"%}</div>
 </div>
 
-</script>
 <script language="JavaScript" type="text/javascript"><!--
 var old_snapshot = "old";
 var new_snapshot = "new";

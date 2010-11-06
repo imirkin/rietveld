@@ -22,7 +22,9 @@
     |
     <a href="{%url codereview.views.starred%}">Starred Issues</a>
   {%else%}
-    <a class="novisit" href="{%url codereview.views.index%}">Recent Issues</a>
+    <a class="novisit" href="{%url codereview.views.index%}">Recent Issues (open)</a>
+    |
+    <a class="novisit" href="{%url codereview.views.index%}?closed=1">Recent Issues (all)</a>
     |
     <a class="novisit" href="{{sign_in}}">Sign in</a>
     with your <a href="https://www.google.com/accounts/NewAccount">Google
@@ -93,7 +95,7 @@
             {%nicknames issue.cc%}
           </div>
           <div><b>Base URL:</b><br/>
-            {%firstof issue.base%}
+            {{issue.base}}
           </div>
           <div><b>Visibility:</b><br/>
             {%if issue.private%}

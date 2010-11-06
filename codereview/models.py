@@ -476,13 +476,12 @@ class Comment(db.Model):
 
     _Append()
 
+    self.shorttext = self.text.lstrip()[:50].rstrip()
     # Grab the first 50 chars from the first non-quoted bucket
     for bucket in self.buckets:
       if not bucket.quoted:
         self.shorttext = bucket.text.lstrip()[:50].rstrip()
         break
-    else:
-      self.shorttext = ""
 
     self.unquoted = "\n".join(bucket.text
                               for bucket in self.buckets

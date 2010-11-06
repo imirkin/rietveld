@@ -2,10 +2,7 @@
 {%block body%}
 
 <script language="JavaScript" type="text/javascript"><!--
-function keyPressIntermediary(evt) {
-  return M_keyPress(evt);
-}
-document.onkeypress = keyPressIntermediary;
+document.onkeydown = M_keyDown;
 {%if user%}
 logged_in = true;
 {%else%}
@@ -139,7 +136,6 @@ login_warned = false;
 </div>
 </div>
 
-</script>
 <script language="JavaScript" type="text/javascript"><!--
 var old_snapshot = "old";
 var new_snapshot = "new";

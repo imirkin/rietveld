@@ -3,21 +3,7 @@
 {%block body%}
 
 <script language="JavaScript" type="text/javascript"><!--
-function keyPressIntermediary(evt) {
-  return M_keyPress(evt);
-}
-document.onkeypress = keyPressIntermediary;
-
-function keyPressIntermediaryOnKeyDown(evt) {
-  if (!M_keyPressCommon(evt, function() { return true; }, M_commentTextKeyPress_)) {
-    M_stopBubble(window, evt);
-  }
-}
-
-if (M_isKHTML()) {
-  document.documentElement.addEventListener('keydown', keyPressIntermediaryOnKeyDown, true);
-}
-
+document.onkeydown = M_keyDown;
 {%if user%}
 logged_in = true;
 {%else%}
@@ -254,7 +240,6 @@ Toggle Intra-line Diffs</a> ('i')
 </div>
 
 </div>
-</script>
 <script language="JavaScript" type="text/javascript"><!--
 var old_snapshot = "new";
 var new_snapshot = "new";
