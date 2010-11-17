@@ -2246,14 +2246,15 @@ function M_changelistKeyDown(evt) {
       }
     } else if (key == 'I') {
       if (dashboardState) {
-	var child = dashboardState.curTR.cells[2].firstChild;
-	while (child && child.nextSibling &&
-	       (child.nodeName != "A" || child.style.display == "none" || child.href.indexOf("javascript") != 0)) {
-	  child = child.nextSibling;
-	}
-	if (child && child.nodeName == "A") {
-	  location.href = child.href;
-	}
+        var child = dashboardState.curTR.cells[2].firstChild;
+        while (child && child.nextSibling &&
+               (child.nodeName != "A" || child.style.display == "none" ||
+                !child.onclick)) {
+          child = child.nextSibling;
+        }
+        if (child && child.nodeName == "A") {
+          child.onclick();
+        }
       }
     } else if (key == 'K') {
       if (dashboardState) dashboardState.gotoPrev();
