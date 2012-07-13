@@ -191,7 +191,7 @@ MAX_COLUMN_WIDTH = 2000
 
 def RenderDiffTableRows(request, old_lines, chunks, patch,
                         colwidth=DEFAULT_COLUMN_WIDTH, debug=False,
-                        context=DEFAULT_CONTEXT):
+                        context=DEFAULT_CONTEXT, ignore_whitespace=False):
   """Render the HTML table rows for a side-by-side diff for a patch.
 
   Args:
@@ -202,6 +202,7 @@ def RenderDiffTableRows(request, old_lines, chunks, patch,
     colwidth: Optional column width (default 80).
     debug: Optional debugging flag (default False).
     context: Maximum number of rows surrounding a change (default CONTEXT).
+    ignore_whitespace: Whether to ignore whitespace in the line diff
 
   Yields:
     Strings, each of which represents the text rendering one complete
@@ -209,13 +210,13 @@ def RenderDiffTableRows(request, old_lines, chunks, patch,
     Each yielded string may consist of several <tr> elements.
   """
   rows = _RenderDiffTableRows(request, old_lines, chunks, patch,
-                              colwidth, debug)
+                              colwidth, debug, ignore_whitespace)
   return _CleanupTableRowsGenerator(rows, context)
 
 
 def RenderDiff2TableRows(request, old_lines, old_patch, new_lines, new_patch,
                          colwidth=DEFAULT_COLUMN_WIDTH, debug=False,
-                         context=DEFAULT_CONTEXT):
+                         context=DEFAULT_CONTEXT, ignore_whitespace=False):
   """Render the HTML table rows for a side-by-side diff between two patches.
 
   Args:
@@ -227,6 +228,7 @@ def RenderDiff2TableRows(request, old_lines, old_patch, new_lines, new_patch,
     colwidth: Optional column width (default 80).
     debug: Optional debugging flag (default False).
     context: Maximum number of visible context lines (default DEFAULT_CONTEXT).
+    ignore_whitespace: Whether to ignore whitespace in the line diff
 
   Yields:
     Strings, each of which represents the text rendering one complete
@@ -234,7 +236,8 @@ def RenderDiff2TableRows(request, old_lines, old_patch, new_lines, new_patch,
     Each yielded string may consist of several <tr> elements.
   """
   rows = _RenderDiff2TableRows(request, old_lines, old_patch,
-                               new_lines, new_patch, colwidth, debug)
+                               new_lines, new_patch, colwidth, debug,
+                               ignore_whitespace)
   return _CleanupTableRowsGenerator(rows, context)
 
 
@@ -322,7 +325,8 @@ def _ShortenBuffer(buffer, context):
 
 
 def _RenderDiff2TableRows(request, old_lines, old_patch, new_lines, new_patch,
-                          colwidth=DEFAULT_COLUMN_WIDTH, debug=False):
+                          colwidth=DEFAULT_COLUMN_WIDTH, debug=False,
+                          ignore_whitespace=False):
   """Internal version of RenderDiff2TableRows().
 
   Args:
@@ -344,25 +348,44 @@ def _RenderDiff2TableRows(request, old_lines, old_patch, new_lines, new_patch,
       lst.append(comment)
   return _TableRowGenerator(old_patch, old_dict, len(old_lines)+1, 'new',
                             new_patch, new_dict, len(new_lines)+1, 'new',
-                            _GenerateTriples(old_lines, new_lines),
+                            _GenerateTriples(
+                              old_lines, new_lines, ignore_whitespace),
                             colwidth, debug, request)
 
 
-def _GenerateTriples(old_lines, new_lines):
+def _GenerateTriples(old_lines, new_lines, ignore_whitespace):
   """Helper for _RenderDiff2TableRows yielding input for _TableRowGenerator.
 
   Args:
     old_lines: List of lines representing the patched file on the left.
     new_lines: List of lines representing the patched file on the right.
+    ignore_whitespace: Whether to ignore whitespace
 
   Yields:
     Tuples (tag, old_slice, new_slice) where tag is a tag as returned by
     difflib.SequenceMatchser.get_opcodes(), and old_slice and new_slice
     are lists of lines taken from old_lines and new_lines.
   """
-  sm = difflib.SequenceMatcher(None, old_lines, new_lines)
+  transform = lambda x: x.strip()
+  sm = difflib.SequenceMatcher(
+    None, map(transform, old_lines), map(transform, new_lines))
   for tag, i1, i2, j1, j2 in sm.get_opcodes():
-    yield tag, old_lines[i1:i2], new_lines[j1:j2]
+    if tag == "equal" and not ignore_whitespace:
+      assert i2 - i1 == j2 - j1
+      prev = None
+      prev_index = 0
+      for index in xrange(i2 - i1):
+        eq = "equal" if old_lines[i1 + index] == new_lines[j1 + index] else "replace"
+        if prev is None:
+          prev = eq
+        elif eq != prev:
+          yield prev, old_lines[i1+prev_index:i1+index], new_lines[j1+prev_index:j1+index]
+          prev_index = index
+          prev = eq
+      if prev_index != index:
+        yield prev, old_lines[i1+prev_index:i1+index], new_lines[j1+prev_index:j1+index]
+    else:
+      yield tag, old_lines[i1:i2], new_lines[j1:j2]
 
 
 def _GetComments(request):
@@ -394,7 +417,8 @@ def _GetComments(request):
 
 
 def _RenderDiffTableRows(request, old_lines, chunks, patch,
-                         colwidth=DEFAULT_COLUMN_WIDTH, debug=False):
+                         colwidth=DEFAULT_COLUMN_WIDTH, debug=False,
+                         ignore_whitespace=False):
   """Internal version of RenderDiffTableRows().
 
   Args:
@@ -408,9 +432,15 @@ def _RenderDiffTableRows(request, old_lines, chunks, patch,
   if patch:
     old_dict, new_dict = _GetComments(request)
   old_max, new_max = _ComputeLineCounts(old_lines, chunks)
+  if patch.get_patched_content():
+    iterator = _GenerateTriples(
+      old_lines, patch.get_patched_content().lines, ignore_whitespace)
+  else:
+    iterator = patching.PatchChunks(old_lines, chunks)
+
   return _TableRowGenerator(patch, old_dict, old_max, 'old',
                             patch, new_dict, new_max, 'new',
-                            patching.PatchChunks(old_lines, chunks),
+                            iterator,
                             colwidth, debug, request)
 
 

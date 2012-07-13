@@ -14,4 +14,10 @@
   <input type="text" value="{{column_width}}" id="id_column_width"
 	 name="column_width" size="2">
   <input type="submit" value="Adjust View" />
+  <br/>
+  <label>
+    <input type="checkbox" value="true" id="id_ignore_whitespace"
+           name="ignore_whitespace" {%if ignore_whitespace %}checked{%endif%}>
+    Ignore Leading/Trailing Whitespace
+  </label>
 </form>

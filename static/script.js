@@ -2804,8 +2804,9 @@ function M_expandSkipped(id_before, id_after, where, id_skip) {
   }
 
   colwidth = document.getElementById('id_column_width').value;
+  var ignore_whitespace = document.getElementById('id_ignore_whitespace').checked;
 
-  url = skipped_lines_url+id_before+'/'+id_after+'/'+where+'/'+colwidth;
+  url = skipped_lines_url+id_before+'/'+id_after+'/'+where+'/'+colwidth+'/'+ignore_whitespace;
   if (context) {
     url += '?context='+context;
   }
@@ -2928,8 +2929,9 @@ function M_jumpToPatch(select, issue, patchset, unified, opt_part) {
   var url = base_url+issue+'/'+part+'/'+patchset+'/'+select.value;
   var context = document.getElementById('id_context');
   var colwidth = document.getElementById('id_column_width');
+  var ignore_whitespace = document.getElementById('id_ignore_whitespace');
   if (context && colwidth) {
-    url = url+'?context='+context.value+'&column_width='+colwidth.value;
+    url = url+'?context='+context.value+'&column_width='+colwidth.value + '&ignore_whitespace=' + ignore_whitespace.checked;
   }
   document.location.href = url;
 }
