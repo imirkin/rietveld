@@ -2215,10 +2215,11 @@ def _get_diff2_data(request, ps_left_id, ps_right_id, patch_id, context,
 
 
 @issue_required
-def diff2(request, ps_left_id, ps_right_id, patch_filename, ignore_whitespace):
+def diff2(request, ps_left_id, ps_right_id, patch_filename):
   """/<issue>/diff2/... - View the delta between two different patch sets."""
   context = _get_context_for_user(request)
   column_width = _get_column_width_for_user(request)
+  ignore_whitespace = request.GET.get('ignore_whitespace') == 'true'
 
   ps_right = models.PatchSet.get_by_id(int(ps_right_id), parent=request.issue)
   patch_right = None
