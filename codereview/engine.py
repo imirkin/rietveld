@@ -376,16 +376,14 @@ def _GenerateTriples(old_lines, new_lines, ignore_whitespace):
       prev_index = 0
       for index in xrange(i2 - i1):
         eq = "equal" if old_lines[i1 + index] == new_lines[j1 + index] else "replace"
-        dirty = True
         if prev is None:
           prev = eq
         elif eq != prev:
           yield prev, old_lines[i1+prev_index:i1+index], new_lines[j1+prev_index:j1+index]
           prev_index = index
           prev = eq
-          dirty = False
-      if dirty:
-        yield prev, old_lines[i1+prev_index:i1+index+1], new_lines[j1+prev_index:j1+index+1]
+      assert prev
+      yield prev, old_lines[i1+prev_index:i1+index+1], new_lines[j1+prev_index:j1+index+1]
     else:
       yield tag, old_lines[i1:i2], new_lines[j1:j2]
 
