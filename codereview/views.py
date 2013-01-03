@@ -2791,6 +2791,7 @@ def _make_message(request, issue, message, comments=None, send_mail=False,
     obj["To"] = email.header.Header(", ".join(to))
     obj["Subject"] = email.header.Header(subject)
     obj["Reply-To"] = email.header.Header(reply_to)
+    obj["X-Google-Appengine-App-Id"] = "codereview"
     if cc:
       obj["CC"] = email.header.Header(", ".join(cc))
     obj.set_payload(_encode_safely(body), "utf8")
