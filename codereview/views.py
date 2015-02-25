@@ -26,6 +26,7 @@ import email  # see incoming_mail()
 import email.utils
 import logging
 import md5
+import mimetypes
 import os
 import random
 import re
@@ -768,6 +769,9 @@ def image_required(func):
       content = request.patch.patched_content
     # Other values are erroneous so request.content won't be set.
     if not content or not content.data:
+      return HttpResponseRedirect(django_settings.MEDIA_URL + "blank.jpg")
+    request.mime_type = mimetypes.guess_type(request.patch.filename)[0]
+    if not request.mime_type or not request.mime_type.startswith('image/'):
       return HttpResponseRedirect(django_settings.MEDIA_URL + "blank.jpg")
     request.content = content
     return func(request, *args, **kwds)
@@ -1935,7 +1939,12 @@ def patch_helper(request, nav_type='patch'):
 @image_required
 def image(request):
   """/<issue>/content/<patchset>/<patch>/<content> - Return patch's content."""
-  return HttpResponse(request.content.data)
+  response = HttpResponse(request.content.data, content_type=request.mime_type)
+  filename = re.sub(
+      r'[^\w\.]', '_', request.patch.filename.encode('ascii', 'replace'))
+  response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+  response['Cache-Control'] = 'no-cache, no-store'
+  return response
 
 
 def _unified_format_html(text):
