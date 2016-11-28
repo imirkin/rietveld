@@ -100,4 +100,4 @@ LOGIN_REDIRECT_URL = '/'
 
 # This won't work with gae2django.
 #RIETVELD_INCOMING_MAIL_ADDRESS = None
-RIETVELD_INCOMING_MAIL_ADDRESS = "reviewlog@yext.com"
+RIETVELD_INCOMING_MAIL_ADDRESS = "reviewlog@glmx.com"
