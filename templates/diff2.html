@@ -33,10 +33,14 @@ function go() {
     <input type="hidden" name="lineno" value="XXX">
     <input type="hidden" name="side" value="XXX">
     <input type="hidden" name="issue" value="{{issue.key.id}}">
+{% if patch_left.is_saved %}
     <input type="hidden" name="ps_left" value="{{ps_left.key.id}}">
     <input type="hidden" name="patch_left" value="{{patch_left.key.id}}">
+{% endif %}
+{% if patch_right.is_saved %}
     <input type="hidden" name="ps_right" value="{{ps_right.key.id}}">
     <input type="hidden" name="patch_right" value="{{patch_right.key.id}}">
+{% endif %}
     <textarea name="text" cols="60" rows="5"></textarea><br>
     <input type="submit" name="save" value="Save"
            onclick="return M_submitInlineComment(this.form);">
@@ -126,7 +130,7 @@ function go() {
     </select>
   </div>
   <div>
-    {% if patch_left.key.id %}
+    {% if patch_left.is_saved and patch_left.key.id %}
     Left: <a href="{%url codereview.views.diff issue.key.id,ps_left.key.id,patch_left.filename%}{%urlappend_view_settings%}"
              title="View regular side by side diff">Side by side diff</a>
           |
@@ -134,11 +138,13 @@ function go() {
              title="Download patch for {{patch_left.filename}}">Download</a>
           <br/>
     {% endif %}
+    {% if patch_right.is_saved and patch_right.key.id %}
     Right: <a href="{%url codereview.views.diff issue.key.id,ps_right.key.id,patch_right.filename%}{%urlappend_view_settings%}"
               title="View regular side by side diff">Side by side diff</a>
            |
            <a href="{%url codereview.views.download_patch issue.key.id,ps_right.key.id,patch_right.key.id%}"
              title="Download patch for {{patch_right.filename}}">Download</a>
+    {% endif %}
     {%if user%}
   </div>
   <div style="margin-top: 5px;">
@@ -209,10 +215,14 @@ Toggle Intra-line Diffs</a> ('i')
 {%if patch_right.is_binary %}
 <tr>
 <td style="width:50%" align="center">
+{% if patch_left.is_saved %}
   <img src="{%url codereview.views.image issue.key.id,ps_left.key.id,patch_left.key.id,1%}" />
+{% endif %}
 </td>
 <td style="width:50%" align="center">
+{% if patch_right.is_saved %}
   <img src="{%url codereview.views.image issue.key.id,ps_right.key.id,patch_right.key.id,1%}" />
+{% endif %}
 </td>
 </tr>
 {%else%}
