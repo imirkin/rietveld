@@ -1179,7 +1179,7 @@ def upload_content(request):
       return HttpResponse('ERROR: Checksum mismatch.',
                           content_type='text/plain')
     if patch.is_binary:
-      content.data = data
+      content.data = db.Blob(data)
     else:
       content.text = engine.ToText(engine.UnifyLinebreaks(data))
     content.checksum = checksum
