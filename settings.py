@@ -20,7 +20,8 @@ DATABASE_PASSWORD = 'rietveld' # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 DATABASE_OPTIONS = {
-   "init_command": "SET storage_engine=INNODB",
+   "init_command": "SET default_storage_engine=INNODB",
+   "charset": "utf8mb4",
    }
 
 # Local time zone for this installation. Choices can be found here:
