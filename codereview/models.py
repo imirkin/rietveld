@@ -777,7 +777,7 @@ class Account(db.Model):
   def get_xsrf_token(self, offset=0):
     """Return an XSRF token for the current user."""
     if not self.xsrf_secret:
-      self.xsrf_secret = os.urandom(8)
+      self.xsrf_secret = db.Blob(os.urandom(8))
       self.put()
     m = md5.new(self.xsrf_secret)
     email_str = self.lower_email
